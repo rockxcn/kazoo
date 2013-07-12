@@ -1,5 +1,5 @@
 %%%-------------------------------------------------------------------
-%%% @copyright (C) 2011-2012, VoIP INC
+%%% @copyright (C) 2011-2013, 2600Hz
 %%% @doc
 %%%
 %%% CRUD for call queues
@@ -192,10 +192,8 @@ fetch_all_agent_statuses(Context) ->
 fetch_agent_status(AgentId, Context) ->
     case wh_util:is_true(cb_context:req_value(Context, <<"recent">>)) of
         'false' ->
-            case acdc_agent_util:most_recent_status(cb_context:account_id(Context), AgentId) of
-                {'ok', Resp} ->  crossbar_util:response(Resp, Context);
-                {'error', E} -> crossbar_util:response('error', <<"failed to query status">>, 500, E, Context)
-            end;
+            {'ok', Resp} = acdc_agent_util:most_recent_status(cb_context:account_id(Context), AgentId),
+            crossbar_util:response(Resp, Context);
         'true' ->
             fetch_all_current_statuses(Context
                                        ,AgentId
@@ -242,10 +240,8 @@ fetch_all_current_statuses(Context, AgentId, Status) ->
               ,{<<"Most-Recent">>, wh_util:is_false(Recent)}
              ]),
 
-    case acdc_agent_util:most_recent_statuses(cb_context:account_id(Context), Opts) of
-        {'ok', Resp} -> crossbar_util:response(Resp, Context);
-        {'error', E} -> crossbar_util:response('error', <<"failed to query statuses">>, 500, E, Context)
-    end.
+    {'ok', Resp} = acdc_agent_util:most_recent_statuses(cb_context:account_id(Context), Opts),
+    crossbar_util:response(Resp, Context).
 
 fetch_ranged_agent_stats(Context, StartRange) ->
     MaxRange = whapps_config:get_integer(<<"acdc">>, <<"archive_window_s">>, 3600),
